@@ -1,4 +1,5 @@
 import React from "react";
+import "./App.css";
 import HeroPicker from "./components/hero-picker";
 
 function App() {

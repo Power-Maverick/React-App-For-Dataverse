@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect } from "react";
 // import ReactDOM from "react-dom";
 import { IPersonaProps, Persona, PersonaSize, PersonaPresence } from "@fluentui/react/lib/Persona";
 import { IBasePickerSuggestionsProps, NormalPeoplePicker } from "@fluentui/react/lib/Pickers";
@@ -12,6 +12,7 @@ import { Separator } from "@fluentui/react/lib/Separator";
 import { initializeIcons } from "@fluentui/react/lib/Icons";
 import { createTheme, ITheme } from "@fluentui/react/lib/Styling";
 import { useBoolean } from "@fluentui/react-hooks";
+import ApiHelper from "../helper/api-helper";
 import HeroHelper from "../helper/hero-helper";
 
 initializeIcons(undefined, { disableWarnings: true });
@@ -50,6 +51,8 @@ const HeroPicker = (props: IMainProps): JSX.Element => {
   const [heroPersona, setHeroPersona] = React.useState<IPersonaProps>({});
   const [heroList, setHeroList] = React.useState<any[]>([]);
   const [selectedHero, setSelectedHero] = React.useState<any>();
+  const [mruSuperHero, setMRUSuperHero] = React.useState<string[]>([]);
+  const [mruSuperHeroPersona, setMRUSuperHeroPersona] = React.useState<any[]>([]);
   const [isOpen, { setTrue: openPanel, setFalse: dismissPanel }] = useBoolean(false);
 
   useEffect(() => {
@@ -85,23 +88,66 @@ const HeroPicker = (props: IMainProps): JSX.Element => {
     }
   };
 
-  const onItemSelected = (item: IPersonaProps | undefined): Promise<IPersonaProps> => {
+  const onItemSelected = async (item: IPersonaProps | undefined): Promise<IPersonaProps> => {
     if (item) {
       setHeroPersona(item);
 
       let filteredHeros = heroList.filter((h) => h.pmav_name === (item.text ?? ""));
       setSelectedHero(filteredHeros[0]);
+      setMRUSuperHero((sh) => [...sh, filteredHeros[0].pmav_name]);
+      populateMRUs();
     }
     return new Promise<IPersonaProps>((resolve, reject) => item);
   };
 
-  const showHeroDetails = () => {
+  const changeSelectedHero = (shName: string) => {
+    let filteredHeros = heroList.filter((h) => h.pmav_name === (shName ?? ""));
+    setSelectedHero(filteredHeros[0]);
     openPanel();
-    console.log(selectedHero);
+  };
+
+  const showHeroDetails = () => {
+    let filteredHeros = heroList.filter((h) => h.pmav_name === (heroPersona.text ?? ""));
+    setSelectedHero(filteredHeros[0]);
+    openPanel();
   };
 
   const filterPersonasByText = (filterText: string): IPersonaProps[] => {
     return heroPersonaList.filter((item) => doesTextStartWith(item.text as string, filterText));
+  };
+
+  const populateMRUs = () => {
+    setMRUSuperHeroPersona([]);
+    mruSuperHero?.map(async (sh: string) => {
+      let filteredHero = heroList.filter((h) => h.pmav_name === (sh ?? ""))[0];
+      let shUrl = await ApiHelper.GetSuperHeroImageUrl(sh);
+
+      let cardStyle = {
+        backgroundImage: "url(" + shUrl + ")",
+        backgroundPosition: "center",
+      };
+
+      let card = (
+        <div className="card" style={cardStyle}>
+          <div className="content">
+            <h2 className="title">{sh}</h2>
+            <p className="copy">
+              {sh} was created by {filteredHero.pmav_publisher} publisher.
+            </p>
+            <button
+              className="btn"
+              onClick={() => {
+                changeSelectedHero(sh);
+              }}
+            >
+              View Details
+            </button>
+          </div>
+        </div>
+      );
+
+      setMRUSuperHeroPersona((mru) => [...mru, card]);
+    });
   };
 
   return (
@@ -134,6 +180,10 @@ const HeroPicker = (props: IMainProps): JSX.Element => {
         styles={marginStyles}
       />
       <PrimaryButton text="Show Details" onClick={showHeroDetails} styles={marginStyles} />
+      <div>
+        <h3>Most Recently Searched Super Heros</h3>
+      </div>
+      <div className="mru-cards">{mruSuperHeroPersona}</div>
       <Panel
         isLightDismiss
         isOpen={isOpen}

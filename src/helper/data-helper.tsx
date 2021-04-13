@@ -1,6 +1,6 @@
 export default class DataHelper {
   /**
-   * fetches the data from Dataverse based on provided FetchXML
+   * Fetches the data from Dataverse based on provided FetchXML
    */
   public static Fetch(fetchXml: string): any[] {
     let values: any[] = [];

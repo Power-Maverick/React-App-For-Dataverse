@@ -1,11 +1,14 @@
 {
   "files": {
+    "main.css": "./css/SuperHeroStyles.css",
     "main.js": "./js/SuperHeroScript.js",
     "main.js.map": "./js/SuperHeroScript.js.map",
+    "css/SuperHeroStyles.css.map": "./css/SuperHeroStyles.css.map",
     "index.html": "./index.html",
     "js/SuperHeroScript.js.LICENSE.txt": "./js/SuperHeroScript.js.LICENSE.txt"
   },
   "entrypoints": [
+    "css/SuperHeroStyles.css",
     "js/SuperHeroScript.js"
   ]
 }
